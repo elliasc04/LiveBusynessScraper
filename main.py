@@ -34,7 +34,6 @@ def get_average_times(daydata, days):
 def get_live_busyness(elementdict, days, timeconvert):
     current_time = str(datetime.now().time())
     current_day = str(datetime.now().strftime("%A"))
-    dayindex = days[current_day]
 
     timeindex = int(re.search(r'(\d+):', current_time)[0][:-1])
 
@@ -43,12 +42,12 @@ def get_live_busyness(elementdict, days, timeconvert):
     currentday = None
     currentelement = None
     prevtime = None
+    
     for day in days:
         for element in elementdict.get(day):
             if "Current" in element:
                 currentday = day
-                currenttime = element
-                return [currentday, currentelement,prevtime]
+                return [currentday, element,prevtime, True]
             prevtime = element[-4:-1]
     
     iscurrentlylive = False
@@ -92,38 +91,10 @@ class MapsPage:
         self.get_average_times = get_average_times(driver.find_elements(By.CLASS_NAME,"g2BVhd"),list(self.days.keys()))
         self.live_busyness = get_live_busyness(self.get_average_times, self.days, self.timeconvert)
         self.iscurrentlylive = True
-        print("IT WORKS")
 
     def get_by_day(self, day):
-            print(self.get_average_times[day])
+            return self.get_average_times[day]
 
-    def print_live_busyness(self):
-        live_busyness = self.live_busyness
-        day = live_busyness[0]
-        busyness = live_busyness[1].lower()[:-1]
-
-        prevtime = live_busyness[2]
-
-        numeric_part = prevtime[:-2]
-        suffix = prevtime[-2:]
-        incremented_value = int(numeric_part) + 1
-        current_time = str(incremented_value) + suffix
-
-        if suffix == "PM":
-            incremented_value += 12
-
-        staffed = ""
-
-        if day != "Saturday" and day != "Sunday":
-            if incremented_value >= 8 and incremented_value <= 12:
-                staffed = ""
-            elif incremented_value >= 16 and incremented_value <= 18:
-                staffed = ""
-        else:
-            staffed = "not"
-
-        retstring = f'on {day} at {current_time}, it is {busyness} and is {staffed} staffed.'
-        print(retstring)
 
     def retlivebusyness(self):
         # return in order:
@@ -133,7 +104,6 @@ class MapsPage:
         # [3] == Live Busyness
         # [4] == Staffed
         live_busyness = self.live_busyness
-        print(live_busyness)
         day = live_busyness[0]
 
         
@@ -142,34 +112,22 @@ class MapsPage:
 
         
         percentages = re.findall(r'\d+%', busyness)
-        live = percentages[0]
+        live = percentages[0][:-1]
 
         prevtime = live_busyness[2]
 
+        print(f'THIS IS THE PREVIOUS TIME: {prevtime}')
+        current_time = prevtime + 1
 
-        incremented_value = prevtime + 1
-        # numeric_part = prevtime[:-2]
-        # suffix = prevtime[-2:]
-        # incremented_value = int(numeric_part) + 1
-
-        # if suffix == "PM":
-        #     incremented_value += 12
-
-        staffed = False
-
-        if day != "Saturday" and day != "Sunday":
-            if incremented_value >= 8 and incremented_value <= 12:
-                staffed = True
-            elif incremented_value >= 16 and incremented_value <= 18:
-                staffed = True
-        else:
-            staffed = False
+        livestring = f'On {day} at {self.timeconvert_reverse[current_time]}, it is currently {live}% busy.'
 
         if not live_busyness[3]:
             self.iscurrentlylive = False
-            return [day, incremented_value, live, live, staffed]
+            return [day, current_time, live, live, livestring]
         usual = percentages[1]
-        return [day, incremented_value, live, usual, staffed]
+
+        
+        return [day, current_time, live, usual, livestring]
     
     def retpopulartimes(self):
         timedict = self.get_average_times
@@ -208,18 +166,21 @@ class MapsPage:
                 converted_data.append([percentage, numeric_time])
             retlist.append(converted_data)
             converted_data = []
-        return retlist
+        return retlist 
         
 
 
         
 
 anytime_url = "https://www.google.com/maps/place/Anytime+Fitness/@38.859691,-94.7507246,12z/data=!4m6!3m5!1s0x87c0c1a24b58163b:0x518415eefd7cb2c!8m2!3d38.859691!4d-94.6683271!16s%2Fg%2F11c6q33cnq?entry=ttu"
+firstwatch_url = "https://www.google.com/maps/place/First+Watch/@38.8540006,-94.6731214,17z/data=!3m1!4b1!4m6!3m5!1s0x87c0c1a0c9eebe41:0x2ab4ae8a7170762a!8m2!3d38.8540006!4d-94.6705465!16s%2Fg%2F1hm68nzx0?entry=ttu"
 henry_crown = "https://www.google.com/maps/place/Henry+Crown+Sports+Pavilion/@42.0591628,-87.6737731,18.46z/data=!4m14!1m7!3m6!1s0x880fc5480b0d0d21:0x8fb2ee5a17f66e80!2sCrossfit+Wilmette!8m2!3d42.0740365!4d-87.7073127!16s%2Fg%2F11yr3v0sl!3m5!1s0x880fd00b703e4c39:0x509c3569d8eb2a8e!8m2!3d42.0596373!4d-87.6729806!16s%2Fg%2F1hf3_crv1?entry=ttu"
+
 anytimedata = MapsPage(anytime_url)
-
-# anytimedata.get_by_day("Saturday")
-# anytimedata.print_live_busyness()
-
 print(anytimedata.retlivebusyness())
-print(anytimedata.retpopulartimes()) 
+
+
+# firstwatchdata = MapsPage(firstwatch_url)
+# print(firstwatchdata.retlivebusyness())
+
+# print(anytimedata.retpopulartimes()) 
