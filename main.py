@@ -1,8 +1,7 @@
 from selenium import webdriver
-from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
-import re
+import re, json, urllib.parse
 from datetime import datetime
 
 chrome_options = Options()
@@ -83,8 +82,7 @@ class MapsPage:
         19: '7PM', 20: '8PM', 21: '9PM', 22: '10PM', 23: '11PM', 24: '12AM'
     }
     def __init__(self, page_id):
-        self.url = page_id
-
+        self.url = urllib.parse.unquote(page_id)
         driver = webdriver.Chrome(options=chrome_options)
         driver.get(self.url)
 
@@ -115,27 +113,26 @@ class MapsPage:
         live = percentages[0][:-1]
 
         prevtime = live_busyness[2]
-
-        print(f'THIS IS THE PREVIOUS TIME: {prevtime}')
         current_time = prevtime + 1
 
         livestring = f'On {day} at {self.timeconvert_reverse[current_time]}, it is currently {live}% busy.'
 
         if not live_busyness[3]:
             self.iscurrentlylive = False
-            return [day, current_time, live, live, livestring]
+            return json.dumps([day, current_time, live, live, livestring])
         
         usual = percentages[1][:-1]
 
-        
-        return [day, current_time, live, usual, livestring]
+
+        return json.dumps([day, current_time, live, usual, livestring])
     
     def retpopulartimes(self):
+        
         timedict = self.get_average_times
         retlist = []
 
         # finds all data for the current time and day.
-        livetime = self.retlivebusyness()
+        livetime = json.loads(self.retlivebusyness())
         if self.iscurrentlylive:
             # sets dayindex to the day as a string, such as "Sunday"
             dayindex = livetime[0]
@@ -167,21 +164,22 @@ class MapsPage:
                 converted_data.append([percentage, numeric_time])
             retlist.append(converted_data)
             converted_data = []
-        return retlist 
+        jsonlist = json.dumps(retlist)
+        return jsonlist 
         
 
 
         
 
-anytime_url = "https://www.google.com/maps/place/Anytime+Fitness/@38.859691,-94.7507246,12z/data=!4m6!3m5!1s0x87c0c1a24b58163b:0x518415eefd7cb2c!8m2!3d38.859691!4d-94.6683271!16s%2Fg%2F11c6q33cnq?entry=ttu"
-firstwatch_url = "https://www.google.com/maps/place/First+Watch/@38.8540006,-94.6731214,17z/data=!3m1!4b1!4m6!3m5!1s0x87c0c1a0c9eebe41:0x2ab4ae8a7170762a!8m2!3d38.8540006!4d-94.6705465!16s%2Fg%2F1hm68nzx0?entry=ttu"
-henry_crown = "https://www.google.com/maps/place/Henry+Crown+Sports+Pavilion/@42.0591628,-87.6737731,18.46z/data=!4m14!1m7!3m6!1s0x880fc5480b0d0d21:0x8fb2ee5a17f66e80!2sCrossfit+Wilmette!8m2!3d42.0740365!4d-87.7073127!16s%2Fg%2F11yr3v0sl!3m5!1s0x880fd00b703e4c39:0x509c3569d8eb2a8e!8m2!3d42.0596373!4d-87.6729806!16s%2Fg%2F1hf3_crv1?entry=ttu"
+# anytime_url = "https://www.google.com/maps/place/Anytime+Fitness/@38.859691,-94.7507246,12z/data=!4m6!3m5!1s0x87c0c1a24b58163b:0x518415eefd7cb2c!8m2!3d38.859691!4d-94.6683271!16s%2Fg%2F11c6q33cnq?entry=ttu"
+# firstwatch_url = "https://www.google.com/maps/place/First+Watch/@38.8540006,-94.6731214,17z/data=!3m1!4b1!4m6!3m5!1s0x87c0c1a0c9eebe41:0x2ab4ae8a7170762a!8m2!3d38.8540006!4d-94.6705465!16s%2Fg%2F1hm68nzx0?entry=ttu"
+# henry_crown = "https://www.google.com/maps/place/Henry+Crown+Sports+Pavilion/@42.0591628,-87.6737731,18.46z/data=!4m14!1m7!3m6!1s0x880fc5480b0d0d21:0x8fb2ee5a17f66e80!2sCrossfit+Wilmette!8m2!3d42.0740365!4d-87.7073127!16s%2Fg%2F11yr3v0sl!3m5!1s0x880fd00b703e4c39:0x509c3569d8eb2a8e!8m2!3d42.0596373!4d-87.6729806!16s%2Fg%2F1hf3_crv1?entry=ttu"
 
-anytimedata = MapsPage(anytime_url)
-print(anytimedata.retlivebusyness())
-print(anytimedata.retpopulartimes())
+# anytimedata = MapsPage(anytime_url)
+# print(anytimedata.retlivebusyness())
+# print(anytimedata.retpopulartimes())
 
-firstwatchdata = MapsPage(firstwatch_url)
-print(firstwatchdata.retlivebusyness())
-print(firstwatchdata.retpopulartimes())
+# firstwatchdata = MapsPage(firstwatch_url)
+# print(firstwatchdata.retlivebusyness())
+# print(firstwatchdata.retpopulartimes())
 # print(anytimedata.retpopulartimes()) 
