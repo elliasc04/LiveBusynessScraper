@@ -48,7 +48,8 @@ def get_live_busyness(elementdict, days, timeconvert):
             if "Current" in element:
                 currentday = day
                 return [currentday, element,prevtime, True]
-            prevtime = element[-4:-1]
+            time_string = re.findall(r'\d+(?:AM|PM)', element)[0]
+            prevtime = timeconvert[time_string]
     
     iscurrentlylive = False
 
@@ -100,9 +101,8 @@ class MapsPage:
         # return in order:
         # [0] == Day
         # [1] == Time(24h)
-        # [2] == Usual Busyness
-        # [3] == Live Busyness
-        # [4] == Staffed
+        # [2] == Live Busyness
+        # [3] == Usual Busyness
         live_busyness = self.live_busyness
         day = live_busyness[0]
 
@@ -124,7 +124,8 @@ class MapsPage:
         if not live_busyness[3]:
             self.iscurrentlylive = False
             return [day, current_time, live, live, livestring]
-        usual = percentages[1]
+        
+        usual = percentages[1][:-1]
 
         
         return [day, current_time, live, usual, livestring]
@@ -178,9 +179,9 @@ henry_crown = "https://www.google.com/maps/place/Henry+Crown+Sports+Pavilion/@42
 
 anytimedata = MapsPage(anytime_url)
 print(anytimedata.retlivebusyness())
+print(anytimedata.retpopulartimes())
 
-
-# firstwatchdata = MapsPage(firstwatch_url)
-# print(firstwatchdata.retlivebusyness())
-
+firstwatchdata = MapsPage(firstwatch_url)
+print(firstwatchdata.retlivebusyness())
+print(firstwatchdata.retpopulartimes())
 # print(anytimedata.retpopulartimes()) 
